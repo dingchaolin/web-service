@@ -20,7 +20,7 @@ options.form = {
 
 let getPdf = function( options ){
 
-    return zco( function*( next ){
+    return zco.timeLimit( 10*1000, zco(function*( next ){
 
         let retObj = {
             success: true,
@@ -63,50 +63,28 @@ let getPdf = function( options ){
                     </soapenv:Envelope>`;
 
         let $ = cheerio.load( xml );
-        let PdfFlows = $("PdfFlows").children();
+
         let txt = "";
-        if( PdfFlows.length == 0 ){
-
-            txt = $("PdfFlow").text();
-            let [errFs,fsData] = yield fs.writeFile(`${options.path}.pdf`, new Buffer(txt,"base64"), next);
-            if( errFs || fsData ){
-                retObj = {
-                    success: false,
-                    fileName: [],
-                    errFileName: [`${options.path}.pdf`],
-                    msg:"writeFile Error!",
-                    err: errFs
-                };
-                console.log( `${options.path}.pdf 失败！`);
-                return retObj;
-            }
-            retObj.fileName = [`${options.path}.pdf`];
-            console.log( `${options.path}.pdf 成功！`);
-
-        }else{
-
-            let fileName = [];
-            let errFileName = [];
-
-            for( let i = 0, len = PdfFlows.length; i < len; i ++ ){
-
-                let txt = PdfFlows[i].children[0].data ;
-                let [errFs,fsData] = yield fs.writeFile(`${options.path}_${i}.pdf`, new Buffer(txt,"base64"), next);
-                if( errFs || fsData ){
-                    errFileName.push( `${options.path}_${i}.pdf` );
-                    console.log( `${options.path}_${i}.pdf 失败！`);
-                }else{
-                    fileName.push( `${options.path}_${i}.pdf` );
-                    console.log( `${options.path}_${i}.pdf 成功！`);
-                }
-
-            }
-            retObj.fileName = fileName;
-            retObj.errFileName = errFileName;
+        txt = $("PdfFlow").text();
+        let [errFs,fsData] = yield fs.writeFile(`${options.path}.pdf`, new Buffer(txt,"base64"), next);
+        if( errFs || fsData ){
+            retObj = {
+                success: false,
+                fileName: [],
+                errFileName: [`${options.path}.pdf`],
+                msg:"writeFile Error!",
+                err: errFs
+            };
+            let date = new Date().toLocaleString();
+            console.log( `${options.path}.pdf 失败, ${date}`);
+            return retObj;
         }
+        let date = new Date().toLocaleString();
+        retObj.fileName = [`${options.path}.pdf`];
+        console.log( `${options.path}.pdf 成功, ${date}`);
         return retObj;
 
-    } );
+    } ));
 
 }
 

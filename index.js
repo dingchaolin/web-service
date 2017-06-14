@@ -21,12 +21,14 @@ function start(){
         let totalCount = parseInt( data.result.recordset[0].num|| 2350842 ) ;
         while( totalCount > skip ){
             let [errExec, dataExec] = yield exec();
+            let limit = config.limit;
+            let date = new Date().toLocaleString();
+            console.log(`${skip+limit}条已经处理完毕,${ date }`);
 
             config = configOpr.readConfig( "" );
-            console.log( config, totalCount )
+
             skip = config.skip;
-            let date = new Date().toLocaleString();
-            console.log(`${skip}条已经处理完毕,${ date }`);
+
             if( totalCount < parseInt(skip) ){
                 console.log( "所有处理完毕！" );
                 break;
